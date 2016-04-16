@@ -1,15 +1,20 @@
 'use strict';
 
-var gulp = require( 'gulp' );
-var connect = require( 'gulp-connect' ); // Run local dev server
-var open = require( 'gulp-open' ); // Open a url in browser
+var gulp       = require( 'gulp' );
+var connect    = require( 'gulp-connect' ); // Run local dev server
+var open       = require( 'gulp-open' ); // Open a url in browser
+var browserify = require( 'browserify' ); // Bundle js
+var reactify   = require( 'reactify' ); // Transform React JSX to JS
+var source     = require( 'vinyl-source-stream' ); // Use conventional text streams with Gulp
 
 var config = {
 	port: 3000,
 	devBaseUrl: 'http://localhost',
 	paths: {
-		html: './src/*.html',
-		dist: './dist'
+		html   : './src/*.html',
+		js     : './src/**/*.js',
+		mainJs : './src/main.js',
+		dist   : './dist'
 	}
 };
 
@@ -42,10 +47,23 @@ gulp.task( 'html', () => {
 
 } );
 
-gulp.task( 'watch', () => {
+gulp.task( 'js', () => {
 
-	gulp.watch( config.paths.html, [ 'html' ] );
+	browserify( config.paths.mainJs )
+    	.transform( reactify )
+        .bundle()
+        .on( 'error', console.error.bind( console ) )
+        .pipe( source( 'bundle.js' ) )
+        .pipe( gulp.dest( config.paths.dist + '/scripts' ) )
+        .pipe( connect.reload() );
 
 } );
 
-gulp.task( 'default', [ 'html', 'open', 'watch' ] );
+gulp.task( 'watch', () => {
+
+	gulp.watch( config.paths.html, [ 'html' ] );
+	gulp.watch( config.paths.js, [ 'js' ] );
+
+} );
+
+gulp.task( 'default', [ 'html', 'js', 'open', 'watch' ] );
