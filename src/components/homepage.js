@@ -3,7 +3,7 @@
 var React = require( 'react' );
 
 var Home = React.createClass( {
-	render: () => {
+	render: function() {
         return(
             <div className='jumbotron'>
                 <h1>Pluralsight Admin</h1>
